@@ -1,5 +1,5 @@
 rules = [
-    {"left": "Program", "right": ["Declaration-list"]},
+  {"left": "Program", "right": ["Declaration-list"]},
   {"left": "Declaration-list", "right": ["Declaration", "Declaration-list"]},
   {"left": "Declaration-list", "right": ['epsilon']},
   {"left": "Declaration", "right": ["Declaration-initial", "Declaration-prime"]},

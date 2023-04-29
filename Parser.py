@@ -9,14 +9,14 @@ class Lexim:
 class Alphabet:
 
     def __init__(self, rules, first_sets, follow_sets, predict_sets) -> None:
-        self.lexims = []
+        self.lexims = {}
         self.rules = rules
         self.first_sets = first_sets
         self.follow_sets = follow_sets
         self.predict_sets = predict_sets
 
     def add_lexim(self, lexim):
-        self.lexims.append(lexim)
+        self.lexims[lexim.name] = lexim
 
     def extract_lexims_from_rules(self):
         rules = self.rules
@@ -27,12 +27,13 @@ class Alphabet:
             for right in rule['right']:
                 if right not in self.lexims:
                     lexim = Lexim(right, True)
+                    self.add_lexim(lexim)
 
 class Parser:
 
     def __init__(self, grammar) -> None:
         self.grammar = grammar
-        alphabet = Alphabet(self.grammar.rules, self.grammar.firsts_sets, self.grammar.follow_sets, self.grammar.predict_sets)
+        alphabet = Alphabet(self.grammar.rules, self.grammar.first_sets, self.grammar.follow_sets, self.grammar.predict_sets)
         alphabet.extract_lexims_from_rules()
         self.alphabet = alphabet
 
