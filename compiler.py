@@ -5,7 +5,7 @@ symbol_fa_str = open('FAs/SYMBOL.py').read()
 whitespace_fa_str = open('FAs/WHITESPACE.py').read()
 id_fa_str = open('FAs/ID.py').read()
 comment_fa_str = open('FAs/COMMENT.py').read()
- 
+
 fas = {'COMMENT': FiniteAutomata(comment_fa_str),
        'NUM': FiniteAutomata(num_fa_str),
        'SYMBOL': FiniteAutomata(symbol_fa_str),
