@@ -4,7 +4,7 @@ class CharacterRecognizer:
     UPPERCASE_ALPHABET = [x for x in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ']
     WHITESPACE = [x for x in '\r\n\t\f\v  ']
     DIGITS = [x for x in '0123456789']
-    SYMBOL = [x for x in '(){}[]+-*=/,:;']
+    SYMBOL = [x for x in '(){}[]+-*=/,:;<']
     STARTERS = ALL_ALPHABET + WHITESPACE + DIGITS + [x for x in '(){}/[]+-*=,:;\x00']
     SIGMA = ALL_ALPHABET + DIGITS + SYMBOL + WHITESPACE + ['\x00']
 
