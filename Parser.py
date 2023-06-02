@@ -1,7 +1,7 @@
 from anytree import Node, RenderTree
 
 err = ''
-class Lexim:
+class Lexeme:
 
     def __init__(self, name, is_terminal) -> None:
         self.name = name
@@ -11,37 +11,37 @@ class Lexim:
 class Alphabet:
 
     def __init__(self, rules, first_sets, follow_sets, predict_sets) -> None:
-        self.lexims = {}
+        self.lexemes = {}
         self.rules = rules
         self.first_sets = first_sets
         self.follow_sets = follow_sets
         self.predict_sets = predict_sets
 
-    def add_lexim(self, lexim):
-        self.lexims[lexim.name] = lexim
+    def add_lexeme(self, lexeme):
+        self.lexemes[lexeme.name] = lexeme
 
-    def extract_lexims_from_rules(self):
+    def extract_lexemes_from_rules(self):
         rules = self.rules
         for rule in rules:
             left = rule['left']
-            lexim = Lexim(left, False)
-            self.add_lexim(lexim)
+            lexeme = Lexeme(left, False)
+            self.add_lexeme(lexeme)
             for right in rule['right']:
-                if right not in self.lexims:
-                    lexim = Lexim(right, True)
-                    self.add_lexim(lexim)
+                if right not in self.lexemes:
+                    lexeme = Lexeme(right, True)
+                    self.add_lexeme(lexeme)
 
 
 class Parser:
-    def first_of(self, lexim):
-        if self.alphabet.lexims[lexim].is_terminal:
-            return [lexim]
-        return self.grammar.first_sets[lexim]
+    def first_of(self, lexeme):
+        if self.alphabet.lexemes[lexeme].is_terminal:
+            return [lexeme]
+        return self.grammar.first_sets[lexeme]
 
-    def follow_of(self, lexim):
-        if self.alphabet.lexims[lexim].is_terminal:
+    def follow_of(self, lexeme):
+        if self.alphabet.lexemes[lexeme].is_terminal:
             return []
-        return self.grammar.follow_sets[lexim]
+        return self.grammar.follow_sets[lexeme]
 
     def current_token_value(self):
         return self.current_token[0] if self.current_token[0] in ['ID', 'NUM'] else self.current_token[1]
@@ -51,7 +51,7 @@ class Parser:
         self.grammar = grammar
         alphabet = Alphabet(self.grammar.rules, self.grammar.first_sets, self.grammar.follow_sets,
                             self.grammar.predict_sets)
-        alphabet.extract_lexims_from_rules()
+        alphabet.extract_lexemes_from_rules()
         self.alphabet = alphabet
         self.current_token = first_token
 
@@ -62,22 +62,22 @@ class Parser:
         for lhs in self.grammar.rule_dict[non_terminal]:
             if self.current_token_value() in self.first_of(lhs[0]) or \
                     'epsilon' in self.first_of(lhs[0]) and self.current_token_value() in self.follow_of(lhs[0]):
-                for lexim in lhs:
-                    if self.alphabet.lexims[lexim].is_terminal:
-                        if lexim == self.current_token_value():
+                for lexeme in lhs:
+                    if self.alphabet.lexemes[lexeme].is_terminal:
+                        if lexeme == self.current_token_value():
                             Node('(' + self.current_token[0] + ', ' + self.current_token[1] + ')'
                                  , parent=parent)
                             self.current_token = next(token_scanner_generator)
                         else:
-                            err += '#' + scanner.get_line_number() + ' : syntax error, missing ' + lexim + '\n'
+                            err += '#' + scanner.get_line_number() + ' : syntax error, missing ' + lexeme + '\n'
                             no_error = False
                     else:
-                        while not (self.current_token_value() in self.first_of(lexim) \
+                        while not (self.current_token_value() in self.first_of(lexeme) \
                                    or \
                                    'epsilon' in self.first_of(
-                                    lexim) and self.current_token_value() in self.follow_of(lexim)):
-                            if self.current_token_value() in self.follow_of(lexim):
-                                err += '#' + scanner.get_line_number() + ' : syntax error, missing ' + lexim + '\n'
+                                    lexeme) and self.current_token_value() in self.follow_of(lexeme)):
+                            if self.current_token_value() in self.follow_of(lexeme):
+                                err += '#' + scanner.get_line_number() + ' : syntax error, missing ' + lexeme + '\n'
                                 no_error = False
                                 break
                             else:
@@ -89,7 +89,7 @@ class Parser:
                                     no_error = False
                                     self.current_token = next(token_scanner_generator)
                         else:
-                            res = self.parse(lexim, token_scanner_generator, scanner, Node(lexim, parent=parent))
+                            res = self.parse(lexeme, token_scanner_generator, scanner, Node(lexeme, parent=parent))
                             if res == -1:
                                 if first:
                                     with open('syntax_errors.txt', 'w') as syntax_errors_file:
