@@ -64,19 +64,29 @@ class Parser:
         self.action_symbols = {
             '#save-in-ss': code_gen.save_in_semantic_stack,
             '#dec-var': code_gen.declare_variable,
-            '#dec-array': code_gen.declare_array
+            '#dec-array': code_gen.declare_array,
+            '#pid': code_gen.find_address_and_save,
+            '#mult': code_gen.multiply
         }
+
+    def get_first_non_action_lexeme(self, lexeme_list):
+        for lexeme in lexeme_list:
+            if self.is_action_symbol(lexeme):
+                continue
+            return lexeme
 
     def parse(self, non_terminal, token_scanner_generator, scanner, parent=None, first=False):
         global err
         no_error = True
         for lhs in self.grammar.rule_dict[non_terminal]:
-            if self.current_token_value() in self.first_of(lhs[0]) or \
-                    'epsilon' in self.first_of(lhs[0]) and self.current_token_value() in self.follow_of(lhs[0]):
+            first_lexeme = self.get_first_non_action_lexeme(lhs)
+            if self.current_token_value() in self.first_of(first_lexeme) or \
+                    'epsilon' in self.first_of(first_lexeme) and\
+                    self.current_token_value() in self.follow_of(first_lexeme):
                 for lexeme in lhs:
                     if self.is_action_symbol(lexeme):
                         self.action_symbols[lexeme](self.current_token)
-                        print(lexeme, self.current_token)
+                        # print(lexeme, self.current_token)
                         continue
                     if self.alphabet.lexemes[lexeme].is_terminal:
                         if lexeme == self.current_token_value():
@@ -112,7 +122,7 @@ class Parser:
                                 return -1
 
                 break
-            elif 'epsilon' == lhs[0] and self.current_token_value() in self.follow_of(non_terminal):
+            elif 'epsilon' == first_lexeme and self.current_token_value() in self.follow_of(non_terminal):
                 Node('epsilon', parent=parent)
                 break
 
