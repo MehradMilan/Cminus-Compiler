@@ -11,6 +11,7 @@ class SemanticStack:
         while count > 1:
             self.sp -= 1
             self.stack.pop()
+            count -= 1
         self.sp -= 1
         return self.stack.pop()
 
