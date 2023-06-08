@@ -39,7 +39,7 @@ class ProgramBlock:
         original_stdout = sys.stdout
         with open(file_name, 'w') as f:
             sys.stdout = f
-            for address in self.block:
+            for address in sorted(list(self.block.keys())):
                 print(str(address) + '\t' + str(self.block[address]))
         sys.stdout = original_stdout
 
