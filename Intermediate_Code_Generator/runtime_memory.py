@@ -22,9 +22,12 @@ class ProgramBlock:
         else:
             if index == None:
                 self.block[self.current_index] = instr
-                self.current_index += 1
+                self.increase_index()
             else:
                 self.block[index] = instr
+
+    def increase_index(self, count=1):
+        self.current_index += count
 
     def get_output(self):
         output = ''

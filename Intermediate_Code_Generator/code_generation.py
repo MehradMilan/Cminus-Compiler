@@ -12,7 +12,7 @@ class CodeGenerator:
         self.temp_block = memory.TB
         self.symbol_table = {}
 
-    def save_in_semantic_stack(self, current_token):
+    def save_id_in_semantic_stack(self, current_token):
         self.semantic_stack.push(current_token[1])
 
     def declare_variable(self, current_token):
@@ -41,7 +41,30 @@ class CodeGenerator:
         address = self.symbol_table[name]
         self.semantic_stack.push(address)
 
+    def label(self, current_token):
+        idx = self.program_block.current_index
+        self.semantic_stack.push(idx)
+
     def repeat_until_iter(self, current_token):
         instr = Instruction('JPF', self.semantic_stack.top(), self.semantic_stack.top(1), '')
         self.program_block.add_instruction(instr)
         self.semantic_stack.pop(2)
+
+    def save_pb_index(self, current_token):
+        idx = self.program_block.current_index
+        self.semantic_stack.push(idx)
+        self.program_block.increase_index()
+
+    def jpf_save(self, current_token):
+        idx = self.program_block.current_index
+        instr = Instruction('JPF', self.semantic_stack.top(1), idx + 1, '')
+        self.program_block.add_instruction(instr, self.semantic_stack.top())
+        self.semantic_stack.pop(2)
+        self.semantic_stack.push(idx)
+        self.program_block.increase_index()
+
+    def jp(self, current_token):
+        idx = self.program_block.current_index
+        instr = Instruction('JP', idx, '', '')
+        self.program_block.add_instruction(instr, self.semantic_stack.top())
+        self.semantic_stack.pop()
