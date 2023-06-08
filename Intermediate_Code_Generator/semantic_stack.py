@@ -1,5 +1,4 @@
-class SS:
-
+class SemanticStack:
     def __init__(self) -> None:
         self.stack = list()
         self.sp = 0

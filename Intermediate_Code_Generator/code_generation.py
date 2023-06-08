@@ -1,8 +1,28 @@
-import runtime_memory
+from .runtime_memory import Memory
+from .semantic_stack import SemanticStack
 
-class Code_Generator:
+
+class CodeGenerator:
     def __init__(self) -> None:
-        memory = runtime_memory.Memory(0, 500, 1000)
-        pb = memory.PB
-        db = memory.DB
-        tb = memory.TB
+        memory = Memory(0, 500, 1000)
+        self.memory = memory
+        self.semantic_stack = SemanticStack()
+        self.program_block = memory.PB
+        self.data_block = memory.DB
+        self.temp_block = memory.TB
+        self.symbol_table = {}
+
+    def save_in_semantic_stack(self, current_token):
+        self.semantic_stack.push(current_token[1])
+
+    def declare_variable(self, current_token):
+        name = self.semantic_stack.pop()
+        self.data_block.create_data(name, 'int', self.symbol_table)
+        print(self.symbol_table)
+
+    def declare_array(self, current_token):
+        array_size = self.semantic_stack.pop()
+        name = self.semantic_stack.pop()
+        self.data_block.create_data(name, 'int', self.symbol_table, int(array_size))
+        print(self.symbol_table)
+

@@ -1,6 +1,9 @@
 from anytree import Node, RenderTree
+from Intermediate_Code_Generator.code_generation import CodeGenerator
 
 err = ''
+
+
 class Lexeme:
 
     def __init__(self, name, is_terminal) -> None:
@@ -43,6 +46,9 @@ class Parser:
             return []
         return self.grammar.follow_sets[lexeme]
 
+    def is_action_symbol(self, lexeme):
+        return lexeme in self.action_symbols
+
     def current_token_value(self):
         return self.current_token[0] if self.current_token[0] in ['ID', 'NUM'] else self.current_token[1]
 
@@ -54,15 +60,24 @@ class Parser:
         alphabet.extract_lexemes_from_rules()
         self.alphabet = alphabet
         self.current_token = first_token
+        code_gen = CodeGenerator()
+        self.action_symbols = {
+            '#save-in-ss': code_gen.save_in_semantic_stack,
+            '#dec-var': code_gen.declare_variable,
+            '#dec-array': code_gen.declare_array
+        }
 
-
-    def parse(self, non_terminal, token_scanner_generator, scanner, parent=None, first = False):
+    def parse(self, non_terminal, token_scanner_generator, scanner, parent=None, first=False):
         global err
         no_error = True
         for lhs in self.grammar.rule_dict[non_terminal]:
             if self.current_token_value() in self.first_of(lhs[0]) or \
                     'epsilon' in self.first_of(lhs[0]) and self.current_token_value() in self.follow_of(lhs[0]):
                 for lexeme in lhs:
+                    if self.is_action_symbol(lexeme):
+                        self.action_symbols[lexeme](self.current_token)
+                        print(lexeme, self.current_token)
+                        continue
                     if self.alphabet.lexemes[lexeme].is_terminal:
                         if lexeme == self.current_token_value():
                             Node('(' + self.current_token[0] + ', ' + self.current_token[1] + ')'
