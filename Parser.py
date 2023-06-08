@@ -60,18 +60,23 @@ class Parser:
         alphabet.extract_lexemes_from_rules()
         self.alphabet = alphabet
         self.current_token = first_token
-        code_gen = CodeGenerator()
+        self.code_gen = code_gen = CodeGenerator()
         self.action_symbols = {
-            '#save-in-ss': code_gen.save_id_in_semantic_stack,
+            '#save-in-ss': code_gen.save_token_in_semantic_stack,
             '#dec-var': code_gen.declare_variable,
             '#dec-array': code_gen.declare_array,
             '#pid': code_gen.find_address_and_save,
             '#mult': code_gen.multiply,
+            '#add-or-sub': code_gen.add_or_subtract,
+            '#relation': code_gen.compare,
             '#label': code_gen.label,
             '#until': code_gen.repeat_until_iter,
             '#save': code_gen.save_pb_index,
             '#jpf_save': code_gen.jpf_save,
-            '#jp': code_gen.jp
+            '#jp': code_gen.jp,
+            '#save-num-in-ss': code_gen.save_number_in_semantic_stack,
+            "#assign": code_gen.assign,
+            "#print": code_gen.print_instruction
         }
 
     def get_first_non_action_lexeme(self, lexeme_list):

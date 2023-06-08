@@ -13,6 +13,10 @@ class SemanticStack:
             self.stack.pop()
         self.sp -= 1
         return self.stack.pop()
-    
+
+    def is_empty(self):
+        if self.stack:
+            return False
+        return True
     def top(self, offset=0):
-        return self.stack[self.sp - offset]
+        return self.stack[self.sp - offset - 1]

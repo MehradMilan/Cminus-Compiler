@@ -163,7 +163,7 @@ token_scanner_generator = scanner.scanner()
 parser = Parser(grammar, next(token_scanner_generator))
 root = Node('Program')
 res = parser.parse('Program', token_scanner_generator, scanner, root, True)
-
+parser.code_gen.memory.PB.get_dump('./output.txt')
 if res != -1:
     Node('$', parent=root)
 with open('parse_tree.txt', 'w') as f:

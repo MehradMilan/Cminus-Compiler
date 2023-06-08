@@ -1,3 +1,5 @@
+import sys
+
 INT_SIZE = 4
 MAX_BLOCK = 1000
 
@@ -33,6 +35,13 @@ class ProgramBlock:
         output = ''
         for item in self.block:
             output += f'\n{str(item)}'
+    def get_dump(self, file_name):
+        original_stdout = sys.stdout
+        with open(file_name, 'w') as f:
+            sys.stdout = f
+            for address in self.block:
+                print(str(address) + '\t' + str(self.block[address]))
+        sys.stdout = original_stdout
 
 
 class Instruction:
