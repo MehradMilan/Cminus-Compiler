@@ -16,7 +16,7 @@ rule_dict = {
     "Statement": [["Expression-stmt"], ["Compound-stmt"], ["Selection-stmt"], ["Iteration-stmt"], ["Return-stmt"]],
     "Expression-stmt": [["Expression", ";"], ["break", ";"], [";"]],
     "Selection-stmt": [["if", "(", "Expression", ")", "Statement", "else", "Statement"]],
-    "Iteration-stmt": [["repeat", "Statement", "until", "(", "Expression", ")"]],
+    "Iteration-stmt": [["repeat", "#save-in-ss", "Statement", "until", "(", "Expression", ")", "#until"]],
     "Return-stmt": [["return", "Return-stmt-prime"]],
     "Return-stmt-prime": [[";"], ["Expression", ";"]],
     "Expression": [["Simple-expression-zegond"], ["ID", "B"]],

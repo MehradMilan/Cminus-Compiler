@@ -1,4 +1,4 @@
-from .runtime_memory import Memory
+from .runtime_memory import *
 from .semantic_stack import SemanticStack
 
 
@@ -26,3 +26,7 @@ class CodeGenerator:
         self.data_block.create_data(name, 'int', self.symbol_table, int(array_size))
         print(self.symbol_table)
 
+    def repeat_until_iter(self, current_token):
+        instr = Instruction('JPF', self.semantic_stack.top(), self.semantic_stack.top(1), '')
+        self.program_block.add_instruction(instr)
+        self.semantic_stack.pop(2)

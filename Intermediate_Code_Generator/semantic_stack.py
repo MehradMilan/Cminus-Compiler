@@ -7,7 +7,10 @@ class SemanticStack:
         self.stack.append(addr)
         self.sp += 1
 
-    def pop(self):
+    def pop(self, count=1):
+        while count > 1:
+            self.sp -= 1
+            self.stack.pop()
         self.sp -= 1
         return self.stack.pop()
     
