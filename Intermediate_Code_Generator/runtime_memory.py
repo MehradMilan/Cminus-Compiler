@@ -4,12 +4,12 @@ MAX_BLOCK = 1000
 
 class Memory:
     def __init__(self, pb_index, db_index, tb_index) -> None:
-        self.PB = Program_Block(pb_index, db_index - 1)
+        self.PB = ProgramBlock(pb_index, db_index - 1)
         self.DB = Data_Block(db_index, tb_index - 1)
         self.TB = Temporary_Block(tb_index, MAX_BLOCK - 1)
 
 
-class Program_Block:
+class ProgramBlock:
     def __init__(self, base, bound) -> None:
         self.base = base
         self.bound = bound

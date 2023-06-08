@@ -18,13 +18,28 @@ class CodeGenerator:
     def declare_variable(self, current_token):
         name = self.semantic_stack.pop()
         self.data_block.create_data(name, 'int', self.symbol_table)
-        print(self.symbol_table)
 
     def declare_array(self, current_token):
         array_size = self.semantic_stack.pop()
         name = self.semantic_stack.pop()
         self.data_block.create_data(name, 'int', self.symbol_table, int(array_size))
-        print(self.symbol_table)
+
+    def find_address_and_save(self, current_token):
+        name = current_token[1]
+        address = self.symbol_table[name]
+        self.semantic_stack.push(address)
+
+    def multiply(self, current_token):
+        temp = self.temp_block.get_temp()
+        instruction = Instruction('MULT', self.semantic_stack.pop(), self.semantic_stack.pop(), temp)
+        self.semantic_stack.push(temp)
+        self.program_block.add_instruction(instruction)
+        print(str(instruction))
+
+    def add(self, current_token):
+        name = current_token[1]
+        address = self.symbol_table[name]
+        self.semantic_stack.push(address)
 
     def repeat_until_iter(self, current_token):
         instr = Instruction('JPF', self.semantic_stack.top(), self.semantic_stack.top(1), '')
