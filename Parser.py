@@ -83,7 +83,9 @@ class Parser:
             '#end': code_gen.end_scope,
             '#save-break': code_gen.save_break,
             '#dec-func': code_gen.declare_function,
-            '#end-func': code_gen.end_function
+            '#end-func': code_gen.end_function,
+            '#dec-pointer': code_gen.declare_pointer,
+            '#param-info': code_gen.save_function_parameters_information
         }
 
     def get_first_non_action_lexeme(self, lexeme_list):
@@ -141,6 +143,10 @@ class Parser:
                 break
             elif 'epsilon' == first_lexeme and self.current_token_value() in self.follow_of(non_terminal):
                 Node('epsilon', parent=parent)
+                if len(lhs) > 1:
+                    for lexeme in lhs:
+                        if self.is_action_symbol(lexeme):
+                            self.action_symbols[lexeme](self.current_token)
                 break
 
         if first:

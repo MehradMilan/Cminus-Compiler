@@ -85,6 +85,7 @@ class Data:
         self.lexeme = lexeme
         self.address = address
         self.type = type
+        self.attrs = {}
         if type == 'int' or type == 'array':
             self.type_size = INT_SIZE
 

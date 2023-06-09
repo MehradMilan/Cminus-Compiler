@@ -58,7 +58,8 @@ class CodeGenerator:
             return self.current_symbol_table[name]
         elif name in self.global_symbol_table:
             return self.global_symbol_table[name]
-        else: raise Exception("name not found!")
+        else:
+            raise Exception("name not found!")
 
     def find_address_and_save(self, current_token):
         name = current_token[1]
@@ -74,7 +75,6 @@ class CodeGenerator:
             self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
                 "Semantic Error! '" + name + "' is not defined."
             self.memory.PB.has_error = True
-            print(self.semantic_errors)
 
     def multiply(self, current_token):
         temp = self.temp_block.get_temp()
@@ -89,8 +89,6 @@ class CodeGenerator:
             self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
                 f"Semantic Error! Type mismatch in operands, Got {second_type} instead of {first_type}."
             self.memory.PB.has_error = True
-            print(self.semantic_errors)
-        # print(str(instruction))
 
     def add_or_subtract(self, current_token):
         temp = self.temp_block.get_temp()
@@ -110,7 +108,6 @@ class CodeGenerator:
             self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
                 f"Semantic Error! Type mismatch in operands, Got {second_type} instead of {first_type}."
             self.memory.PB.has_error = True
-            print(self.semantic_errors)
 
     def compare(self, current_token):
         temp = self.temp_block.get_temp()
@@ -185,7 +182,6 @@ class CodeGenerator:
             operand = self.semantic_stack.pop()
             instr = Instruction(self.semantic_stack.pop(), operand, '', '')
             self.program_block.add_instruction(instr)
-            # print(instr)
 
     def calculate_array_address(self, current_token):
         temp = self.temp_block.get_temp()
@@ -211,13 +207,33 @@ class CodeGenerator:
             self.semantic_errors[int(self.parser.scanner.get_line_number()) - 1] = \
                 "Semantic Error! No 'repeat ... until' found for 'break'."
             self.memory.PB.has_error = True
-            print(self.semantic_errors)
 
     def declare_function(self, current_token):
         name = self.semantic_stack.pop()
+        data_type = self.semantic_stack.pop()
         self.current_symbol_table = {}
+        self.global_symbol_table[name] = Data(name, data_type, self.memory.PB.current_index)
         self.all_symbol_tables[name] = self.current_symbol_table
+        self.semantic_stack.push(name)
 
     def end_function(self, current_token):
-       print(self.all_symbol_tables)
        self.current_symbol_table = self.global_symbol_table
+
+    def declare_pointer(self, current_token):
+        name = self.semantic_stack.pop()
+        data_type = self.semantic_stack.pop()
+        if data_type == 'void':
+            self.semantic_errors[int(self.parser.scanner.get_line_number()) - 1] = \
+                "Semantic Error! Illegal type of void for '" + name + "'"
+            self.memory.PB.has_error = True
+        else:
+            self.data_block.create_data(name, 'array', self.current_symbol_table)
+
+    def save_function_parameters_information(self, current_token):
+        name = self.semantic_stack.pop()
+        arg_types = []
+        for datum_name in self.current_symbol_table:
+            datum = self.current_symbol_table[datum_name]
+            arg_types.append(datum.type)
+        self.global_symbol_table[name].attrs['arguments'] = arg_types
+        print(arg_types)
