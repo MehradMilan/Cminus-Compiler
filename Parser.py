@@ -85,7 +85,9 @@ class Parser:
             '#dec-func': code_gen.declare_function,
             '#end-func': code_gen.end_function,
             '#dec-pointer': code_gen.declare_pointer,
-            '#param-info': code_gen.save_function_parameters_information
+            '#param-info': code_gen.save_function_parameters_information,
+            '#start-args': code_gen.start_func_call_args,
+            '#check-args': code_gen.check_function_args
         }
 
     def get_first_non_action_lexeme(self, lexeme_list):

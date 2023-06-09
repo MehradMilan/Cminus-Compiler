@@ -234,6 +234,40 @@ class CodeGenerator:
         arg_types = []
         for datum_name in self.current_symbol_table:
             datum = self.current_symbol_table[datum_name]
-            arg_types.append(datum.type)
+            arg_types.append(datum.address)
         self.global_symbol_table[name].attrs['arguments'] = arg_types
-        print(arg_types)
+
+    def check_function_args(self, current_token):
+        args = []
+        while self.semantic_stack.top() != '#arguments':
+            arg = self.semantic_stack.pop()
+            args.append(arg)
+        self.semantic_stack.pop()
+        if self.semantic_stack.top() == 'PRINT':
+            self.semantic_stack.push(args[0])
+            return
+        address = self.semantic_stack.pop()
+        func = None
+        for datum in self.global_symbol_table:
+            if self.global_symbol_table[datum].address == address:
+                func = self.global_symbol_table[datum]
+                break
+
+        func_args = func.attrs['arguments']
+        if len(args) != len(func_args):
+            self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
+                f"Semantic Error! Mismatch in numbers of arguments of {func.lexeme}"
+            self.memory.PB.has_error = True
+
+        for i in range(len(args)):
+            given_type, func_arg_type, match = self.do_types_match(args[i], func_args[i])
+            if not match:
+                self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
+                    f"Semantic Error! Mismatch in type of argument {i+1} of '{func.lexeme}'. Expected '{func_arg_type}' but got '{given_type}' instead."
+                self.memory.PB.has_error = True
+
+        
+        
+
+    def start_func_call_args(self, current_token):
+        self.semantic_stack.push('#arguments')
