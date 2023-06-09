@@ -13,6 +13,7 @@ class Memory:
 
 class ProgramBlock:
     def __init__(self, base, bound) -> None:
+        self.has_error = False
         self.base = base
         self.bound = bound
         self.current_index = base
@@ -42,12 +43,16 @@ class ProgramBlock:
         output = ''
         for item in self.block:
             output += f'\n{str(item)}'
+
     def get_dump(self, file_name):
         original_stdout = sys.stdout
         with open(file_name, 'w') as f:
-            sys.stdout = f
-            for address in sorted(list(self.block.keys())):
-                print(str(address) + '\t' + str(self.block[address]))
+            if not self.has_error:
+                sys.stdout = f
+                for address in sorted(list(self.block.keys())):
+                    print(str(address) + '\t' + str(self.block[address]))
+            else:
+                print("The output code has not been generated.")
         sys.stdout = original_stdout
 
 
