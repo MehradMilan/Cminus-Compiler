@@ -47,8 +47,8 @@ class ProgramBlock:
     def get_dump(self, file_name):
         original_stdout = sys.stdout
         with open(file_name, 'w') as f:
+            sys.stdout = f
             if not self.has_error:
-                sys.stdout = f
                 for address in sorted(list(self.block.keys())):
                     print(str(address) + '\t' + str(self.block[address]))
             else:
@@ -85,7 +85,7 @@ class Data:
         self.lexeme = lexeme
         self.address = address
         self.type = type
-        if type == 'int':
+        if type == 'int' or type == 'array':
             self.type_size = INT_SIZE
 
 
@@ -99,12 +99,12 @@ class Data_Block:
     # def init_data_block(self): TODO
 
     def create_data(self, lexeme, data_type, symbol_table, array_size=1):
-        symbol_table[lexeme] = self.current_index
         for i in range(array_size):
             data = Data(lexeme, data_type, self.current_index)
+            if i == 0:
+                symbol_table[lexeme] = data
             self.block[self.current_index] = data
             self.increase_index(data.type_size)
-        return data
 
     def increase_index(self, data_size):
         self.current_index += data_size

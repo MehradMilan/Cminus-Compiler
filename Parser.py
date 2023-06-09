@@ -52,7 +52,8 @@ class Parser:
     def current_token_value(self):
         return self.current_token[0] if self.current_token[0] in ['ID', 'NUM'] else self.current_token[1]
 
-    def __init__(self, grammar, first_token) -> None:
+    def __init__(self, grammar, first_token, scanner) -> None:
+        self.scanner = scanner
         self.parse_tree = {0: 'Program'}
         self.grammar = grammar
         alphabet = Alphabet(self.grammar.rules, self.grammar.first_sets, self.grammar.follow_sets,
@@ -60,7 +61,7 @@ class Parser:
         alphabet.extract_lexemes_from_rules()
         self.alphabet = alphabet
         self.current_token = first_token
-        self.code_gen = code_gen = CodeGenerator()
+        self.code_gen = code_gen = CodeGenerator(self)
         self.action_symbols = {
             '#save-in-ss': code_gen.save_token_in_semantic_stack,
             '#dec-var': code_gen.declare_variable,

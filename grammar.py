@@ -2,7 +2,7 @@ rule_dict = {
     "Program": [["Declaration-list"]],
     "Declaration-list": [["Declaration", "Declaration-list"], ['epsilon']],
     "Declaration": [["Declaration-initial", "Declaration-prime"]],
-    "Declaration-initial": [["Type-specifier", "#save-in-ss", "ID"]],
+    "Declaration-initial": [["#save-in-ss", "Type-specifier", "#save-in-ss", "ID"]],
     "Declaration-prime": [["Fun-declaration-prime"], ["Var-declaration-prime"]],
     "Var-declaration-prime": [[";", "#dec-var"], ["[", "#save-in-ss", "NUM", "]", ";", "#dec-array"]],
     "Fun-declaration-prime": [["(", "Params", ")", "Compound-stmt"]],

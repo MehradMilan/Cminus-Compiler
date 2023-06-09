@@ -160,7 +160,7 @@ token_scanner_generator = scanner.scanner()
 
 # for i in token_scanner:
 #     print(i)
-parser = Parser(grammar, next(token_scanner_generator))
+parser = Parser(grammar, next(token_scanner_generator), scanner)
 root = Node('Program')
 res = parser.parse('Program', token_scanner_generator, scanner, root, True)
 parser.code_gen.memory.PB.get_dump('./output.txt')
@@ -191,3 +191,10 @@ with open('symbol_table.txt', 'w') as f:
     for i in range(len(symbol_table)):
         line = str(i + 1) + '.\t' + symbol_table[i]
         f.write(line + '\n')
+
+with open('semantic_errors.txt', 'w') as f:
+    for line_number in parser.code_gen.semantic_errors:
+        error = parser.code_gen.semantic_errors[line_number]
+        line = '#' + str(line_number) + ':\t' + error
+        f.write(line + '\n')
+
