@@ -1,1 +1,5 @@
+.gitignore
 *.txt
+./Intermediate_Code_Generator/__pycache__/
+__pycache__/
+*.pyc

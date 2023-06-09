@@ -12,7 +12,9 @@ class CodeGenerator:
         self.program_block = memory.PB
         self.data_block = memory.DB
         self.temp_block = memory.TB
-        self.symbol_table = {}
+        self.global_symbol_table = {}
+        self.current_symbol_table = self.global_symbol_table
+        self.symbol_table_stack = []
 
     def do_types_match(self, first_operand, second_operand):
         first_type = 'int'
@@ -43,20 +45,29 @@ class CodeGenerator:
                 "Semantic Error! Illegal type of void for '" + name + "'"
             self.memory.PB.has_error = True
         else:
-            self.data_block.create_data(name, 'int', self.symbol_table)
+            self.data_block.create_data(name, 'int', self.current_symbol_table)
 
     def declare_array(self, current_token):
         array_size = self.semantic_stack.pop()
         name = self.semantic_stack.pop()
-        self.data_block.create_data(name, 'array', self.symbol_table, int(array_size))
+        self.data_block.create_data(name, 'array', self.current_symbol_table, int(array_size))
+
+    def get_data_by_name(self, name):
+        if name in self.current_symbol_table:
+            return self.current_symbol_table[name]
+        elif name in self.global_symbol_table:
+            return self.global_symbol_table[name]
+        else: raise Exception("name not found!")
 
     def find_address_and_save(self, current_token):
         name = current_token[1]
         if name == 'output':
             self.semantic_stack.push('PRINT')
             return
+        
         try:
-            address = self.symbol_table[name].address
+            address = self.get_data_by_name(name).address
+            # address = self.current_symbol_table[name].address
             self.semantic_stack.push(address)
         except:
             self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
@@ -113,10 +124,10 @@ class CodeGenerator:
         self.semantic_stack.push(temp)
         self.program_block.add_instruction(instruction)
 
-    def add(self, current_token):
-        name = current_token[1]
-        address = self.symbol_table[name]
-        self.semantic_stack.push(address)
+    # def add(self, current_token):
+    #     name = current_token[1]
+    #     address = self.current_symbol_table[name]
+    #     self.semantic_stack.push(address)
 
     def label(self, current_token):
         idx = self.program_block.current_index
