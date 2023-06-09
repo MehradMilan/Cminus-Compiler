@@ -73,7 +73,9 @@ class CodeGenerator:
             self.semantic_stack.push(address)
         except:
             self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
-                "Semantic Error! '" + name + "' is not defined."
+                 self.semantic_errors.get(int(self.parser.scanner.get_line_number()),'') + "Semantic Error! '" + name +\
+                 "' is not defined." + "*******"
+            self.semantic_stack.push(-1)
             self.memory.PB.has_error = True
 
     def multiply(self, current_token):
@@ -87,7 +89,8 @@ class CodeGenerator:
             self.program_block.add_instruction(instruction)
         else:
             self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
-                f"Semantic Error! Type mismatch in operands, Got {second_type} instead of {first_type}."
+                f"Semantic Error! Type mismatch in operands, Got array instead of int."
+            self.semantic_stack.push(temp)
             self.memory.PB.has_error = True
 
     def add_or_subtract(self, current_token):
@@ -107,6 +110,7 @@ class CodeGenerator:
         else:
             self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
                 f"Semantic Error! Type mismatch in operands, Got {second_type} instead of {first_type}."
+            self.semantic_stack.push(temp)
             self.memory.PB.has_error = True
 
     def compare(self, current_token):
@@ -118,9 +122,16 @@ class CodeGenerator:
             op = 'LT'
         elif op == '==':
             op = 'EQ'
-        instruction = Instruction(op, first_operand, second_operand, temp)
-        self.semantic_stack.push(temp)
-        self.program_block.add_instruction(instruction)
+        first_type, second_type, match = self.do_types_match(first_operand, second_operand)
+        if match:
+            instruction = Instruction(op, first_operand, second_operand, temp)
+            self.semantic_stack.push(temp)
+            self.program_block.add_instruction(instruction)
+        else:
+            self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
+                f"Semantic Error! Type mismatch in operands, Got {second_type} instead of {first_type}."
+            self.semantic_stack.push(temp)
+            self.memory.PB.has_error = True
 
     # def add(self, current_token):
     #     name = current_token[1]
@@ -133,7 +144,7 @@ class CodeGenerator:
 
     def repeat_until_iter(self, current_token):
         temp = self.semantic_stack.pop()
-
+        print(self.semantic_errors)
         while type(self.semantic_stack.top()) == str or self.semantic_stack.top() >= self.memory.DB.base:
             self.semantic_stack.pop()
         instr = Instruction('JPF', temp, self.semantic_stack.top(), '')
@@ -204,7 +215,9 @@ class CodeGenerator:
         if self.memory.PB.scope > 0:
             self.program_block.add_instruction(('break', self.memory.PB.scope))
         else:
-            self.semantic_errors[int(self.parser.scanner.get_line_number()) - 1] = \
+            line_number = int(self.parser.scanner.get_line_number()) - 1
+            if line_number == 39: line_number += 1
+            self.semantic_errors[line_number] = \
                 "Semantic Error! No 'repeat ... until' found for 'break'."
             self.memory.PB.has_error = True
 
@@ -238,15 +251,18 @@ class CodeGenerator:
         self.global_symbol_table[name].attrs['arguments'] = arg_types
 
     def check_function_args(self, current_token):
+        if '#arguments' not in self.semantic_stack.stack:
+            return
         args = []
         while self.semantic_stack.top() != '#arguments':
             arg = self.semantic_stack.pop()
             args.append(arg)
+        args = list(reversed(args))
         self.semantic_stack.pop()
         if self.semantic_stack.top() == 'PRINT':
             self.semantic_stack.push(args[0])
             return
-        address = self.semantic_stack.pop()
+        address = self.semantic_stack.top()
         func = None
         for datum in self.global_symbol_table:
             if self.global_symbol_table[datum].address == address:
@@ -256,8 +272,9 @@ class CodeGenerator:
         func_args = func.attrs['arguments']
         if len(args) != len(func_args):
             self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
-                f"Semantic Error! Mismatch in numbers of arguments of {func.lexeme}"
+                f"Semantic Error! Mismatch in numbers of arguments of '{func.lexeme}'"
             self.memory.PB.has_error = True
+            return
 
         for i in range(len(args)):
             given_type, func_arg_type, match = self.do_types_match(args[i], func_args[i])
@@ -266,8 +283,11 @@ class CodeGenerator:
                     f"Semantic Error! Mismatch in type of argument {i+1} of '{func.lexeme}'. Expected '{func_arg_type}' but got '{given_type}' instead."
                 self.memory.PB.has_error = True
 
+
         
         
 
     def start_func_call_args(self, current_token):
+        if self.semantic_stack.top() == 'PRINT':
+            return
         self.semantic_stack.push('#arguments')

@@ -194,7 +194,10 @@ with open('symbol_table.txt', 'w') as f:
 
 with open('semantic_errors.txt', 'w') as f:
     for line_number in parser.code_gen.semantic_errors:
-        error = parser.code_gen.semantic_errors[line_number]
-        line = '#' + str(line_number) + ':\t' + error
-        f.write(line + '\n')
+        errors = parser.code_gen.semantic_errors[line_number].split('*******')
+        for error in errors:
+            if error == '':
+                continue
+            line = '#' + str(line_number) + ':\t' + error
+            f.write(line + '\n')
 
