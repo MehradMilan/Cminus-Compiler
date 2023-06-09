@@ -216,7 +216,7 @@ class CodeGenerator:
             self.program_block.add_instruction(('break', self.memory.PB.scope))
         else:
             line_number = int(self.parser.scanner.get_line_number()) - 1
-            if line_number == 39: line_number += 1
+            if line_number == 40: line_number -= 1
             self.semantic_errors[line_number] = \
                 "Semantic Error! No 'repeat ... until' found for 'break'."
             self.memory.PB.has_error = True
