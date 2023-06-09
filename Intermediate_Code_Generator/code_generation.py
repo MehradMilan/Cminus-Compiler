@@ -80,9 +80,22 @@ class CodeGenerator:
         self.semantic_stack.push(idx)
 
     def repeat_until_iter(self, current_token):
-        instr = Instruction('JPF', self.semantic_stack.top(), self.semantic_stack.top(1), '')
+        temp = self.semantic_stack.pop()
+
+        while type(self.semantic_stack.top()) == str or self.semantic_stack.top() >= self.memory.DB.base:
+            self.semantic_stack.pop()
+        instr = Instruction('JPF', temp, self.semantic_stack.top(), '')
         self.program_block.add_instruction(instr)
-        self.semantic_stack.pop(2)
+        self.semantic_stack.pop()
+
+        # handle break
+        program_block = self.memory.PB
+        for address in program_block.block:
+            instruction = program_block.block[address]
+            if type(instruction) == tuple and instruction[0] == 'break':
+                if instruction[1] == program_block.scope + 1:
+                    new_instr = Instruction('JP', self.program_block.current_index, '', '')
+                    program_block.add_instruction(new_instr, address)
 
     def save_pb_index(self, current_token):
         idx = self.program_block.current_index
@@ -91,15 +104,20 @@ class CodeGenerator:
 
     def jpf_save(self, current_token):
         idx = self.program_block.current_index
-        instr = Instruction('JPF', self.semantic_stack.top(1), idx + 1, '')
-        self.program_block.add_instruction(instr, self.semantic_stack.top())
-        self.semantic_stack.pop(2)
+        while type(self.semantic_stack.top()) == str or self.semantic_stack.top() >= self.memory.DB.base:
+            self.semantic_stack.pop()
+        address = self.semantic_stack.pop()
+        instr = Instruction('JPF', self.semantic_stack.top(), idx + 1, '')
+        self.program_block.add_instruction(instr, address)
+        self.semantic_stack.pop()
         self.semantic_stack.push(idx)
         self.program_block.increase_index()
 
     def jp(self, current_token):
         idx = self.program_block.current_index
         instr = Instruction('JP', idx, '', '')
+        while type(self.semantic_stack.top()) == str or self.semantic_stack.top() >= self.memory.DB.base:
+            self.semantic_stack.pop()
         self.program_block.add_instruction(instr, self.semantic_stack.top())
         self.semantic_stack.pop()
 
@@ -114,3 +132,23 @@ class CodeGenerator:
             instr = Instruction(self.semantic_stack.pop(), operand, '', '')
             self.program_block.add_instruction(instr)
             # print(instr)
+
+    def calculate_array_address(self, current_token):
+        temp = self.temp_block.get_temp()
+        temp2 = self.temp_block.get_temp()
+        offset = self.semantic_stack.pop()
+        base = self.semantic_stack.pop()
+        mult_instruction = Instruction('MULT', '#4', offset, temp)
+        self.program_block.add_instruction(mult_instruction)
+        add_instruction = Instruction('ADD', '#' + str(base), temp, temp2)
+        self.program_block.add_instruction(add_instruction)
+        self.semantic_stack.push('@' + str(temp2))
+
+    def end_scope(self, current_token):
+        self.memory.PB.dec_scope()
+
+    def begin_scope(self, current_token):
+        self.memory.PB.inc_scope()
+
+    def save_break(self, current_token):
+        self.program_block.add_instruction(('break', self.memory.PB.scope))

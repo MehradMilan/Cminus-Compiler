@@ -76,7 +76,12 @@ class Parser:
             '#jp': code_gen.jp,
             '#save-num-in-ss': code_gen.save_number_in_semantic_stack,
             "#assign": code_gen.assign,
-            "#print": code_gen.print_instruction
+            "#print": code_gen.print_instruction,
+            "#calc-arr-addr": code_gen.calculate_array_address,
+            '#begin': code_gen.begin_scope,
+            '#end': code_gen.end_scope,
+            '#save-break': code_gen.save_break,
+
         }
 
     def get_first_non_action_lexeme(self, lexeme_list):

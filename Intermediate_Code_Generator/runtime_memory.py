@@ -17,6 +17,7 @@ class ProgramBlock:
         self.bound = bound
         self.current_index = base
         self.block = {}
+        self.scope = 0
 
     def add_instruction(self, instr=None, index=None):
         if instr == None:
@@ -30,6 +31,12 @@ class ProgramBlock:
 
     def increase_index(self, count=1):
         self.current_index += count
+
+    def inc_scope(self):
+        self.scope += 1
+
+    def dec_scope(self):
+        self.scope -= 1
 
     def get_output(self):
         output = ''
