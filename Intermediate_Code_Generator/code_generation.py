@@ -14,7 +14,8 @@ class CodeGenerator:
         self.temp_block = memory.TB
         self.global_symbol_table = {}
         self.current_symbol_table = self.global_symbol_table
-        self.symbol_table_stack = []
+        self.all_symbol_tables = {'global': self.global_symbol_table}
+        self.function_stack = []
 
     def do_types_match(self, first_operand, second_operand):
         first_type = 'int'
@@ -211,3 +212,12 @@ class CodeGenerator:
                 "Semantic Error! No 'repeat ... until' found for 'break'."
             self.memory.PB.has_error = True
             print(self.semantic_errors)
+
+    def declare_function(self, current_token):
+        name = self.semantic_stack.pop()
+        self.current_symbol_table = {}
+        self.all_symbol_tables[name] = self.current_symbol_table
+
+    def end_function(self, current_token):
+       print(self.all_symbol_tables)
+       self.current_symbol_table = self.global_symbol_table

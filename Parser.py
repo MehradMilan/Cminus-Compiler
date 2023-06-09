@@ -82,7 +82,8 @@ class Parser:
             '#begin': code_gen.begin_scope,
             '#end': code_gen.end_scope,
             '#save-break': code_gen.save_break,
-
+            '#dec-func': code_gen.declare_function,
+            '#end-func': code_gen.end_function
         }
 
     def get_first_non_action_lexeme(self, lexeme_list):
