@@ -3,7 +3,6 @@ from .semantic_stack import SemanticStack
 
 LINE_SIZE = 40
 
-
 class CodeGenerator:
     def __init__(self, parser) -> None:
         memory = Memory(0, 500, 1000)
@@ -17,7 +16,7 @@ class CodeGenerator:
         self.global_symbol_table = {}
         self.current_symbol_table = self.global_symbol_table
         self.all_symbol_tables = {'global': self.global_symbol_table}
-        self.function_stack = []
+        self.call_stack = []
 
     def do_types_match(self, first_operand, second_operand):
         first_type = 'int'

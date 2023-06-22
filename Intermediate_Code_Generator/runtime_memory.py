@@ -109,3 +109,16 @@ class Data_Block:
 
     def increase_index(self, data_size):
         self.current_index += data_size
+
+class Activation_Record:
+
+    def __init__(self, argument_values, symbol_table, access_link, return_addr) -> None:
+        self.argument_values = argument_values
+        self.symbol_table = symbol_table
+        self.access_link = access_link
+        self.return_addr = return_addr
+
+    def add_arguments(self):
+        pass
+
+    

@@ -14,7 +14,7 @@ rule_dict = {
     "Compound-stmt": [[ "{", "Declaration-list", "Statement-list", "}"]],
     "Statement-list": [["Statement", "Statement-list"], ['epsilon']],
     "Statement": [["Expression-stmt"], ["Compound-stmt"], ["Selection-stmt"], ["Iteration-stmt"], ["Return-stmt"]],
-    "Expression-stmt": [["Expression", ";"], ["break", ";", "#save-break"], [";"]],
+    "Expression-stmt": [["Expression", ";"], ["break", "#save-break", ";"], [";"]],
     "Selection-stmt": [["if", "(", "Expression", ")", "#save", "Statement", "else", "#jpf_save", "Statement", "#jp"]],
     "Iteration-stmt": [["repeat", "#label", "#begin", "Statement", "#end", "until", "(", "Expression", ")", "#until"]],
     "Return-stmt": [["return", "Return-stmt-prime"]],
