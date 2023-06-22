@@ -16,7 +16,7 @@ class ProgramBlock:
         self.has_error = False
         self.base = base
         self.bound = bound
-        self.current_index = base
+        self.current_index = base + 1 #main call
         self.block = {}
         self.scope = 0
 
@@ -121,4 +121,3 @@ class Activation_Record:
     def add_arguments(self):
         pass
 
-    

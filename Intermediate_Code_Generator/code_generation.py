@@ -224,6 +224,8 @@ class CodeGenerator:
 
     def declare_function(self, current_token):
         name = self.semantic_stack.pop()
+        if name == 'main':
+            self.memory.PB.add_instruction(Instruction('JP', self.memory.PB.current_index, '', ''), self.memory.PB.base)
         data_type = self.semantic_stack.pop()
         self.current_symbol_table = {}
         self.global_symbol_table[name] = Data(name, data_type, self.memory.PB.current_index)
