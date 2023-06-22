@@ -5,7 +5,7 @@ LINE_SIZE = 40
 
 class CodeGenerator:
     def __init__(self, parser) -> None:
-        memory = Memory(0, 500, 1000)
+        memory = Memory(0, 504, 1000)
         self.parser = parser
         self.semantic_errors = {}
         self.memory = memory
@@ -17,6 +17,8 @@ class CodeGenerator:
         self.current_symbol_table = self.global_symbol_table
         self.all_symbol_tables = {'global': self.global_symbol_table}
         self.call_stack = []
+        self.function_stack_pointer = 5000
+        self.top_sp = 500
 
     def do_types_match(self, first_operand, second_operand):
         first_type = 'int'
@@ -291,3 +293,13 @@ class CodeGenerator:
         if self.semantic_stack.top() == 'PRINT':
             return
         self.semantic_stack.push('#arguments')
+
+    def push_function_stack(self, addr):
+        self.memory.PB.add_instruction(Instruction('ASSIGN', addr, self.function_stack_pointer, ''))
+        self.memory.PB.add_instruction(Instruction('ADD', '#'+INT_SIZE, self.function_stack_pointer, self.function_stack_pointer))
+
+    def pop_function_stack(self):
+        self.memory.PB.add_instruction(Instruction('ASSIGN', self.function_stack_pointer, self.top_sp, ''))
+        self.memory.PB.add_instruction(Instruction('SUB', '#'+INT_SIZE, self.function_stack_pointer, self.function_stack_pointer))
+
+        

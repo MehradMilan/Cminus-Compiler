@@ -19,5 +19,6 @@ class SemanticStack:
         if self.stack:
             return False
         return True
+    
     def top(self, offset=0):
         return self.stack[self.sp - offset - 1]
