@@ -282,7 +282,8 @@ class CodeGenerator:
             given_type, func_arg_type, match = self.do_types_match(args[i], func_args[i])
             if not match:
                 self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
-                    f"Semantic Error! Mismatch in type of argument {i + 1} of '{func.lexeme}'. Expected '{func_arg_type}' but got '{given_type}' instead."
+                    f"Semantic Error! Mismatch in type of argument {i + 1} of '{func.lexeme}'. Expected " \
+                    f"'{func_arg_type}' but got '{given_type}' instead."
                 self.memory.PB.has_error = True
 
     def start_func_call_args(self, current_token):
