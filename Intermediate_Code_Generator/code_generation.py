@@ -21,8 +21,13 @@ class CodeGenerator:
         self.function_stack_pointer = 5000
         self.top_sp = 500
 
-    def function_call_instructions(self, function_object: Data):
+    def function_call_instructions(self, function_object: Data, ar_size):
         self.memory.PB.add_instruction(Instruction('JP', function_object.address, '', ''))
+        self.push_function_stack(self.top_sp)
+        self.memory.PB.add_instruction(Instruction('ADD', self.top_sp, f'#{ar_size}', self.top_sp))
+        temp = self.memory.TB.get_temp()
+        self.memory.PB.add_instruction(Instruction('ADD', self.top_sp, f'#{INT_SIZE}', temp))
+        self.memory.PB.add_instruction(Instruction('ASSIGN', self.memory.PB.current_index + 1 ,f'@{temp}',''))
 
     def do_types_match(self, first_operand, second_operand):
         first_type = 'int'
@@ -154,11 +159,6 @@ class CodeGenerator:
                 f"Semantic Error! Type mismatch in operands, Got {second_type} instead of {first_type}."
             self.semantic_stack.push(temp)
             self.memory.PB.has_error = True
-
-    # def add(self, current_token):
-    #     name = current_token[1]
-    #     address = self.current_symbol_table[name]
-    #     self.semantic_stack.push(address)
 
     def label(self, current_token):
         idx = self.program_block.current_index
@@ -308,7 +308,11 @@ class CodeGenerator:
         #             f"'{func_arg_type}' but got '{given_type}' instead."
         #         self.memory.PB.has_error = True
         #         return
-        self.function_call_instructions(func)
+        ar_size = 2 * INT_SIZE
+        if self.current_symbol_table:
+            ar_size += self.current_symbol_table[list(self.current_symbol_table.keys())[-1]].address -\
+                self.current_symbol_table[list(self.current_symbol_table.keys())[0]].address
+        self.function_call_instructions(func, ar_size)
         # pass
 
     def start_func_call_args(self, current_token):
@@ -318,10 +322,10 @@ class CodeGenerator:
 
     def push_function_stack(self, addr):
         self.memory.PB.add_instruction(Instruction('ASSIGN', addr, self.function_stack_pointer, ''))
-        self.memory.PB.add_instruction(Instruction('ADD', '#' + INT_SIZE, self.function_stack_pointer,
+        self.memory.PB.add_instruction(Instruction('ADD', f'#{INT_SIZE}', self.function_stack_pointer,
                                                    self.function_stack_pointer))
 
     def pop_function_stack(self):
         self.memory.PB.add_instruction(Instruction('ASSIGN', self.function_stack_pointer, self.top_sp, ''))
-        self.memory.PB.add_instruction(Instruction('SUB', '#' + INT_SIZE, self.function_stack_pointer,
+        self.memory.PB.add_instruction(Instruction('SUB', f'#{INT_SIZE}', self.function_stack_pointer,
                                                    self.function_stack_pointer))
