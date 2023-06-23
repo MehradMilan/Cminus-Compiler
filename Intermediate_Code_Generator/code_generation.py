@@ -42,7 +42,11 @@ class CodeGenerator:
         self.memory.PB.add_instruction(Instruction('ADD', self.top_sp, f'#{INT_SIZE}', temp))
         self.memory.PB.add_instruction(Instruction('ASSIGN', self.memory.PB.current_index + 2, f'@{temp}', ''))
 
+        return_value_temp = self.memory.TB.get_temp()
+        self.memory.PB.add_instruction(Instruction('ASSIGN', f'#{return_value_temp}', self.top_sp, ''))
+        
         self.memory.PB.add_instruction(Instruction('JP', function_object.address, '', ''))
+        return return_value_temp
 
 
     def do_types_match(self, first_operand, second_operand):
@@ -328,7 +332,8 @@ class CodeGenerator:
         if self.current_symbol_table:
             ar_size += self.current_symbol_table[list(self.current_symbol_table.keys())[-1]].address - \
                        self.current_symbol_table[list(self.current_symbol_table.keys())[0]].address
-        self.function_call_instructions(func, ar_size, args)
+        return_value_temp = self.function_call_instructions(func, ar_size, args)
+        self.semantic_stack.push(return_value_temp)
         pass
 
     def start_func_call_args(self, current_token):
