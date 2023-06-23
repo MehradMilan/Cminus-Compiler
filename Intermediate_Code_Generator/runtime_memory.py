@@ -8,7 +8,7 @@ class Memory:
     def __init__(self, pb_index, db_index, tb_index) -> None:
         self.PB = ProgramBlock(pb_index, db_index - 1)
         self.DB = Data_Block(db_index, tb_index - 1)
-        self.TB = Temporary_Block(tb_index, MAX_BLOCK - 1)
+        self.TB = TemporaryBlock(tb_index, MAX_BLOCK - 1)
 
 
 class ProgramBlock:
@@ -16,7 +16,7 @@ class ProgramBlock:
         self.has_error = False
         self.base = base
         self.bound = bound
-        self.current_index = base + 1 #main call
+        self.current_index = base + 1  # main call
         self.block = {}
         self.scope = 0
 
@@ -67,7 +67,7 @@ class Instruction:
         return f'({self.opcode}, {self.op1}, {self.op2}, {self.op3})'
 
 
-class Temporary_Block:
+class TemporaryBlock:
     def __init__(self, base, bound) -> None:
         self.base = base
         self.bound = bound
@@ -110,6 +110,7 @@ class Data_Block:
     def increase_index(self, data_size):
         self.current_index += data_size
 
+
 class Activation_Record:
 
     def __init__(self, argument_values, symbol_table, access_link, return_addr) -> None:
@@ -120,4 +121,3 @@ class Activation_Record:
 
     def add_arguments(self):
         pass
-    

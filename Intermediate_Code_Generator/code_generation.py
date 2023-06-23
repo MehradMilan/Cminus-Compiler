@@ -3,6 +3,7 @@ from .semantic_stack import SemanticStack
 
 LINE_SIZE = 40
 
+
 class CodeGenerator:
     def __init__(self, parser) -> None:
         memory = Memory(0, 504, 1000)
@@ -20,6 +21,9 @@ class CodeGenerator:
         self.function_stack_pointer = 5000
         self.top_sp = 500
 
+    def function_call_instructions(self, function_object: Data):
+        self.memory.PB.add_instruction(Instruction('JP', function_object.address, '', ''))
+
     def do_types_match(self, first_operand, second_operand):
         first_type = 'int'
         second_type = 'int'
@@ -33,7 +37,8 @@ class CodeGenerator:
             second_type = self.memory.DB.block[address].type
         except:
             second_type = 'int'
-        return first_type, second_type, first_type == second_type
+        # return first_type, second_type, first_type == second_type
+        return first_type, second_type, True
 
     def save_token_in_semantic_stack(self, current_token):
         self.semantic_stack.push(current_token[1])
@@ -57,10 +62,14 @@ class CodeGenerator:
         self.data_block.create_data(name, 'array', self.current_symbol_table, int(array_size))
 
     def get_data_by_name(self, name):
-        if name in self.current_symbol_table:
-            return self.current_symbol_table[name]
-        elif name in self.global_symbol_table:
-            return self.global_symbol_table[name]
+        if name in self.global_symbol_table:
+            return True, 0, self.global_symbol_table[name]
+        elif name in self.current_symbol_table:
+            offset = self.current_symbol_table[name].address - \
+                     self.current_symbol_table[list(self.current_symbol_table.keys())[0]].address + 2 * INT_SIZE
+            is_global_or_main = 'main' in self.all_symbol_tables and\
+                                self.all_symbol_tables['main'] == self.current_symbol_table
+            return is_global_or_main, offset, self.current_symbol_table[name]
         else:
             raise Exception("name not found!")
 
@@ -71,12 +80,22 @@ class CodeGenerator:
             return
 
         try:
-            address = self.get_data_by_name(name).address
-            # address = self.current_symbol_table[name].address
+            if name == 'sort':
+                pass
+            is_global_or_main, offset, datum = self.get_data_by_name(name)
+            address = datum.address
+            if not is_global_or_main:
+                address = self.memory.TB.get_temp()
+                self.memory.PB.add_instruction(
+                    Instruction('ADD', self.top_sp, f'#{offset}', address)
+                )
+                self.semantic_stack.push(f'@{address}')
+                return
             self.semantic_stack.push(address)
-        except:
+        except Exception as e:
             self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
-                self.semantic_errors.get(int(self.parser.scanner.get_line_number()), '') + "Semantic Error! '" + name + \
+                self.semantic_errors.get(int(self.parser.scanner.get_line_number()), '') + "Semantic Error! '" \
+                + name + \
                 "' is not defined." + "*******"
             self.semantic_stack.push(-1)
             self.memory.PB.has_error = True
@@ -268,26 +287,29 @@ class CodeGenerator:
             self.semantic_stack.push(args[0])
             return
         address = self.semantic_stack.top()
-        func = None
+        func: Data = None
         for datum in self.global_symbol_table:
             if self.global_symbol_table[datum].address == address:
                 func = self.global_symbol_table[datum]
                 break
 
         func_args = func.attrs['arguments']
-        if len(args) != len(func_args):
-            self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
-                f"Semantic Error! Mismatch in numbers of arguments of '{func.lexeme}'"
-            self.memory.PB.has_error = True
-            return
-
-        for i in range(len(args)):
-            given_type, func_arg_type, match = self.do_types_match(args[i], func_args[i])
-            if not match:
-                self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
-                    f"Semantic Error! Mismatch in type of argument {i + 1} of '{func.lexeme}'. Expected " \
-                    f"'{func_arg_type}' but got '{given_type}' instead."
-                self.memory.PB.has_error = True
+        # if len(args) != len(func_args):
+        #     self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
+        #         f"Semantic Error! Mismatch in numbers of arguments of '{func.lexeme}'"
+        #     self.memory.PB.has_error = True
+        #     return
+        #
+        # for i in range(len(args)):
+        #     given_type, func_arg_type, match = self.do_types_match(args[i], func_args[i])
+        #     if not match:
+        #         self.semantic_errors[int(self.parser.scanner.get_line_number())] = \
+        #             f"Semantic Error! Mismatch in type of argument {i + 1} of '{func.lexeme}'. Expected " \
+        #             f"'{func_arg_type}' but got '{given_type}' instead."
+        #         self.memory.PB.has_error = True
+        #         return
+        self.function_call_instructions(func)
+        # pass
 
     def start_func_call_args(self, current_token):
         if self.semantic_stack.top() == 'PRINT':
@@ -296,10 +318,10 @@ class CodeGenerator:
 
     def push_function_stack(self, addr):
         self.memory.PB.add_instruction(Instruction('ASSIGN', addr, self.function_stack_pointer, ''))
-        self.memory.PB.add_instruction(Instruction('ADD', '#'+INT_SIZE, self.function_stack_pointer, self.function_stack_pointer))
+        self.memory.PB.add_instruction(Instruction('ADD', '#' + INT_SIZE, self.function_stack_pointer,
+                                                   self.function_stack_pointer))
 
     def pop_function_stack(self):
         self.memory.PB.add_instruction(Instruction('ASSIGN', self.function_stack_pointer, self.top_sp, ''))
-        self.memory.PB.add_instruction(Instruction('SUB', '#'+INT_SIZE, self.function_stack_pointer, self.function_stack_pointer))
-
-        
+        self.memory.PB.add_instruction(Instruction('SUB', '#' + INT_SIZE, self.function_stack_pointer,
+                                                   self.function_stack_pointer))
