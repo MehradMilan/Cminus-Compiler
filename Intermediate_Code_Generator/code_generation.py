@@ -21,13 +21,29 @@ class CodeGenerator:
         self.function_stack_pointer = 5000
         self.top_sp = 500
 
-    def function_call_instructions(self, function_object: Data, ar_size):
-        self.memory.PB.add_instruction(Instruction('JP', function_object.address, '', ''))
+    def function_call_instructions(self, function_object: Data, ar_size, arguments):
         self.push_function_stack(self.top_sp)
+
+        function_symbol_table = self.all_symbol_tables[function_object.lexeme]
+        self.call_stack.append(self.current_symbol_table)
+        self.current_symbol_table = function_symbol_table
+        start_index_of_ar = self.memory.TB.get_temp()
+        self.memory.PB.add_instruction(Instruction('ADD', self.top_sp, f'#{ar_size}', start_index_of_ar))
+        for i, argument in enumerate(arguments):
+            argument_name = list(function_symbol_table.keys())[i]
+            temp_for_arg_address_in_new_ar = self.memory.TB.get_temp()
+            is_global_or_main, offset, data = self.get_data_by_name(argument_name)
+            self.memory.PB.add_instruction(Instruction('ADD', start_index_of_ar, f'#{offset}',
+                                                       temp_for_arg_address_in_new_ar))
+            self.memory.PB.add_instruction(Instruction('ASSIGN', argument, temp_for_arg_address_in_new_ar, ''))
+
         self.memory.PB.add_instruction(Instruction('ADD', self.top_sp, f'#{ar_size}', self.top_sp))
         temp = self.memory.TB.get_temp()
         self.memory.PB.add_instruction(Instruction('ADD', self.top_sp, f'#{INT_SIZE}', temp))
-        self.memory.PB.add_instruction(Instruction('ASSIGN', self.memory.PB.current_index + 1 ,f'@{temp}',''))
+        self.memory.PB.add_instruction(Instruction('ASSIGN', self.memory.PB.current_index + 2, f'@{temp}', ''))
+
+        self.memory.PB.add_instruction(Instruction('JP', function_object.address, '', ''))
+
 
     def do_types_match(self, first_operand, second_operand):
         first_type = 'int'
@@ -72,13 +88,13 @@ class CodeGenerator:
         elif name in self.current_symbol_table:
             offset = self.current_symbol_table[name].address - \
                      self.current_symbol_table[list(self.current_symbol_table.keys())[0]].address + 2 * INT_SIZE
-            is_global_or_main = 'main' in self.all_symbol_tables and\
+            is_global_or_main = 'main' in self.all_symbol_tables and \
                                 self.all_symbol_tables['main'] == self.current_symbol_table
             return is_global_or_main, offset, self.current_symbol_table[name]
         else:
             raise Exception("name not found!")
 
-    def find_address_and_save(self, current_token):
+    def find_address_and_save(self, current_token, should_save=True):
         name = current_token[1]
         if name == 'output':
             self.semantic_stack.push('PRINT')
@@ -310,10 +326,10 @@ class CodeGenerator:
         #         return
         ar_size = 2 * INT_SIZE
         if self.current_symbol_table:
-            ar_size += self.current_symbol_table[list(self.current_symbol_table.keys())[-1]].address -\
-                self.current_symbol_table[list(self.current_symbol_table.keys())[0]].address
-        self.function_call_instructions(func, ar_size)
-        # pass
+            ar_size += self.current_symbol_table[list(self.current_symbol_table.keys())[-1]].address - \
+                       self.current_symbol_table[list(self.current_symbol_table.keys())[0]].address
+        self.function_call_instructions(func, ar_size, args)
+        pass
 
     def start_func_call_args(self, current_token):
         if self.semantic_stack.top() == 'PRINT':
