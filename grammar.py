@@ -18,7 +18,7 @@ rule_dict = {
     "Selection-stmt": [["if", "(", "Expression", ")", "#save", "Statement", "else", "#jpf_save", "Statement", "#jp"]],
     "Iteration-stmt": [["repeat", "#label", "#begin", "Statement", "#end", "until", "(", "Expression", ")", "#until"]],
     "Return-stmt": [["return", "Return-stmt-prime"]],
-    "Return-stmt-prime": [[";"], ["Expression", ";"]],
+    "Return-stmt-prime": [["#return-jp", ";"], ["Expression", "#return-value", ";"]],
     "Expression": [["Simple-expression-zegond"], ["#pid", "ID", "B", "#print"]],
     "B": [["=", "Expression", "#assign"], ["[", "Expression", "]", "#calc-arr-addr", "H"], ["Simple-expression-prime"]],
     "H": [["=", "Expression", "#assign"], ["G", "D", "C"]],

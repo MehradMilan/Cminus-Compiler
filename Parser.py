@@ -88,6 +88,8 @@ class Parser:
             '#param-info': code_gen.save_function_parameters_information,
             '#start-args': code_gen.start_func_call_args,
             '#check-args': code_gen.check_function_args,
+            '#return-value': code_gen.return_value,
+            '#return-jp': code_gen.return_jump 
         }
 
     def get_first_non_action_lexeme(self, lexeme_list):

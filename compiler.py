@@ -199,5 +199,5 @@ with open('semantic_errors.txt', 'w') as f:
             if error == '':
                 continue
             line = '#' + str(line_number) + ':\t' + error
-            f.write(line + '\n')
+            f.write(line + '\n')            
 
