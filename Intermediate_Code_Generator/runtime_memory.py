@@ -16,7 +16,7 @@ class ProgramBlock:
         self.has_error = False
         self.base = base
         self.bound = bound
-        self.current_index = base + 1  # main call
+        self.current_index = base + 5  # main call
         self.block = {}
         self.scope = 0
 
@@ -81,11 +81,12 @@ class TemporaryBlock:
 
 
 class Data:
-    def __init__(self, lexeme, type, address):
+    def __init__(self, lexeme, type, address, is_function=False):
         self.lexeme = lexeme
         self.address = address
         self.type = type
         self.attrs = {}
+        self.is_function = is_function
         if type == 'int' or type == 'array':
             self.type_size = INT_SIZE
 
