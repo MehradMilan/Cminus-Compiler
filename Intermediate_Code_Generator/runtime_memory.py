@@ -81,11 +81,11 @@ class TemporaryBlock:
 
 
 class Data:
-    def __init__(self, lexeme, type, address, is_function=False):
+    def __init__(self, lexeme, type, address, is_function=False, attrs={}):
         self.lexeme = lexeme
         self.address = address
         self.type = type
-        self.attrs = {}
+        self.attrs = attrs
         self.is_function = is_function
         if type == 'int' or type == 'array':
             self.type_size = INT_SIZE
@@ -100,9 +100,9 @@ class Data_Block:
 
     # def init_data_block(self): TODO
 
-    def create_data(self, lexeme, data_type, symbol_table, array_size=1):
+    def create_data(self, lexeme, data_type, symbol_table, array_size=1, attrs={}):
         for i in range(array_size):
-            data = Data(lexeme, data_type, self.current_index)
+            data = Data(lexeme, data_type, self.current_index, attrs=attrs)
             if i == 0:
                 symbol_table[lexeme] = data
             self.block[self.current_index] = data

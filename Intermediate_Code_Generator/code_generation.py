@@ -36,9 +36,22 @@ class CodeGenerator:
             is_global_or_main, offset, data = self.get_data_by_name(argument_name)
             self.memory.PB.add_instruction(Instruction('ADD', start_index_of_ar, f'#{offset}',
                                                        temp_for_arg_address_in_new_ar))
-            # self.memory.PB.add_instruction(Instruction('ASSIGN', argument if data.type=='int' else f'#{argument}',
-            #                                            f'@{temp_for_arg_address_in_new_ar}', ''))
-            self.memory.PB.add_instruction(Instruction('ASSIGN', argument,   f'@{temp_for_arg_address_in_new_ar}', ''))
+
+            if data.type == 'array':
+                if str(argument).startswith('@'):
+                    temp = self.memory.TB.get_temp()
+                    self.memory.PB.add_instruction(Instruction('ASSIGN', argument, temp, ''))
+                    self.memory.PB.add_instruction(Instruction('ASSIGN',
+                                                               temp,
+                                                               f'@{temp_for_arg_address_in_new_ar}', ''))
+                else:
+                    self.memory.PB.add_instruction(Instruction('ASSIGN',
+                                                               f'#{argument}',
+                                                               f'@{temp_for_arg_address_in_new_ar}', ''))
+            else:
+                self.memory.PB.add_instruction(Instruction('ASSIGN',
+                                                           argument,
+                                                           f'@{temp_for_arg_address_in_new_ar}', ''))
 
         self.memory.PB.add_instruction(Instruction('ADD', self.top_sp, f'#{ar_size}', self.top_sp))
         temp = self.memory.TB.get_temp()
@@ -87,17 +100,18 @@ class CodeGenerator:
     def declare_array(self, current_token):
         array_size = self.semantic_stack.pop()
         name = self.semantic_stack.pop()
-        self.data_block.create_data(name, 'array', self.current_symbol_table, int(array_size))
+        self.data_block.create_data(name, 'array', self.current_symbol_table, int(array_size),
+                                    {'array_size': int(array_size)})
 
     def get_data_by_name(self, name):
-        if name in self.global_symbol_table:
-            return True, 0, self.global_symbol_table[name]
-        elif name in self.current_symbol_table:
+        if name in self.current_symbol_table:
             offset = self.current_symbol_table[name].address - \
                      self.current_symbol_table[list(self.current_symbol_table.keys())[0]].address + 2 * INT_SIZE
             is_global_or_main = 'main' in self.all_symbol_tables and \
                                 self.all_symbol_tables['main'] == self.current_symbol_table
             return is_global_or_main, offset, self.current_symbol_table[name]
+        elif name in self.global_symbol_table:
+            return True, 0, self.global_symbol_table[name]
         else:
             raise Exception("name not found!")
 
@@ -244,7 +258,12 @@ class CodeGenerator:
         base = self.semantic_stack.pop()
         mult_instruction = Instruction('MULT', '#4', offset, temp)
         self.program_block.add_instruction(mult_instruction)
-        add_instruction = Instruction('ADD', '#' + str(base), temp, temp2)
+        if str(base).startswith('@'):
+            temp_array_base = self.temp_block.get_temp()
+            self.program_block.add_instruction(Instruction('ASSIGN', base, temp_array_base, ''))
+            add_instruction = Instruction('ADD', temp_array_base, temp, temp2)
+        else:
+            add_instruction = Instruction('ADD', '#' + str(base), temp, temp2)
         self.program_block.add_instruction(add_instruction)
         self.semantic_stack.push('@' + str(temp2))
 
@@ -354,7 +373,12 @@ class CodeGenerator:
                     first_function = i - 1
                     break
                 i += 1
-            ar_size += self.global_symbol_table[list(self.global_symbol_table.keys())[i]].address - \
+            last_global: Data = self.global_symbol_table[list(self.global_symbol_table.keys())[first_function]]
+            last_global_address = last_global.address
+            if last_global.type == 'array':
+                last_global_address += (last_global.attrs['array_size'] - 1) * 4
+
+            ar_size += last_global_address - \
                        self.global_symbol_table[list(self.global_symbol_table.keys())[0]].address
         return_value_temp = self.function_call_instructions(func, ar_size, args)
         self.semantic_stack.push(return_value_temp)
